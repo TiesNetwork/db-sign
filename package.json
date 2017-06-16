@@ -1,0 +1,15 @@
+{
+  "name": "@ties-network/db-sign",
+  "version": "0.0.1",
+  "description": "TiesDB json signing",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Dmitry Kochin <k@ties.network>",
+  "license": "ISC",
+  "dependencies": {
+    "canonical-json": "0.0.4",
+    "ethereumjs-util": "^5.1.2"
+  }
+}
