@@ -1,15 +1,20 @@
 {
   "name": "@ties-network/db-sign",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "TiesDB json signing",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "author": "Dmitry Kochin <k@ties.network>",
   "license": "ISC",
   "dependencies": {
+    "@parity/wordlist": "^1.1.0",
     "canonical-json": "0.0.4",
-    "ethereumjs-util": "^5.1.2"
+    "ethereumjs-util": "^5.1.2",
+    "node-cryptojs-aes": "^0.4.0"
+  },
+  "devDependencies": {
+    "mocha": "^3.4.2"
   }
 }
