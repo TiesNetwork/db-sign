@@ -16,5 +16,16 @@
   },
   "devDependencies": {
     "mocha": "^3.4.2"
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TiesNetwork/db-sign.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TiesNetwork/db-sign/issues"
+  },
+  "homepage": "https://github.com/TiesNetwork/db-sign#readme"
 }
