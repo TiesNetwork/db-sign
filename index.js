@@ -144,6 +144,7 @@ module.exports = {
 	signMessage: signMessage,
 	checkMessage: checkMessage,
     recoverWalletFromEncryptedPrivateKey: recoverWalletFromEncryptedPrivateKey,
+    recoverWalletFromPrivateKey: recoverWalletFromPrivateKey,
     encryptPrivateKey: encryptPrivateKey,
     generateNewWallet: generateNewWallet
 };
