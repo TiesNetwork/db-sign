@@ -1,6 +1,6 @@
 {
   "name": "@ties-network/db-sign",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "TiesDB json signing",
   "main": "index.js",
   "scripts": {
@@ -10,11 +10,15 @@
   "license": "ISC",
   "dependencies": {
     "@parity/wordlist": "^1.1.0",
+    "base-58": "0.0.1",
     "canonical-json": "0.0.4",
+    "crc-32": "^1.0.2",
     "ethereumjs-util": "^5.1.2",
-    "node-cryptojs-aes": "^0.4.0"
+    "node-cryptojs-aes": "^0.4.0",
+    "truffle-contract": "^2.0.4"
   },
   "devDependencies": {
+    "truffle-artifactor": "^2.1.5",
     "mocha": "^3.4.2"
   },
   "directories": {

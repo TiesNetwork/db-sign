@@ -1,5 +1,8 @@
-var EUtils = require('ethereumjs-util');
-var CJson = require('canonical-json');
+const EUtils = require('ethereumjs-util');
+const CJson = require('canonical-json');
+
+const Base58 = require("base-58");
+const CRC32 = require('crc-32');
 
 /**
 	@returns wallet {
@@ -139,12 +142,84 @@ function encryptPrivateKey(privateKey, password){
     return encrypted_json_str;
 }
 
+function assertIndexIsNumber(index){
+    if(typeof(index) !== 'number')
+        throw new Error('index should be number, and it is ' + typeof index);
+}
+
+function getInvitationHash(index){
+    assertIndexIsNumber(index);
+    const prefix = "TIE invitation";
+    let indexbuf = EUtils.setLength(EUtils.toBuffer(new EUtils.BN(index)), 32);
+    let sha3hash = EUtils.sha3(Buffer.concat([EUtils.toBuffer(prefix), indexbuf]));
+    return sha3hash;
+}
+
+function encodeInvitation(index, privateKey){
+    assertIndexIsNumber(index);
+    let sha3hash = getInvitationHash(index);
+    let sig = EUtils.ecsign(sha3hash, privateKey);
+
+    return encodeInvitationInner(index, sig.v, sig.r, sig.s);
+}
+
+function encodeInvitationInner(index, sig_v, sig_r, sig_s){
+    assertIndexIsNumber(index);
+    let buf = new Buffer(3 + 1 + 32 + 32 + 4);
+    buf.writeUInt32LE(index, 0);
+
+    buf[3] = sig_v;
+    sig_r.copy(buf, 4);
+    sig_s.copy(buf, 4+32);
+
+    let crc = CRC32.buf(buf.slice(0, buf.length-4));
+    buf.writeInt32LE(crc, buf.length-4);
+
+    return Base58.encode(buf);
+}
+
+function decodeInvitation(str){
+    let buf = new Buffer(Base58.decode(str));
+    if(buf.length != 3 + 1 + 32 + 32 + 4)
+        throw new Error('Invalid invitation code!');
+    let crc = CRC32.buf(buf.slice(0, buf.length-4));
+    let shouldbecrc = buf.readInt32LE(buf.length-4);
+    if(crc != shouldbecrc)
+        throw new Error('Bad invitation code!');
+
+    let bufInvite = buf.slice(0, 4);
+    let index = bufInvite.readUInt32LE(0, true)&0xFFFFFF;
+    let sig_v = buf.readUInt8(3);
+    let sig_r = buf.slice(4, 4+32);
+    let sig_s = buf.slice(4+32, 4+32+32);
+
+    let sha3hash = getInvitationHash(index);
+    let pubKey = EUtils.ecrecover(sha3hash, sig_v, sig_r, sig_s);
+    let address = EUtils.publicToAddress(pubKey);
+
+    return {
+        index: index,
+        address: EUtils.bufferToHex(address),
+        sig_v: sig_v,
+        sig_r: EUtils.bufferToHex(sig_r),
+        sig_s: EUtils.bufferToHex(sig_s)
+    };
+}
+
 module.exports = {
-	recoverWallet: recoverWallet,
+    recoverWallet: recoverWallet,
 	signMessage: signMessage,
 	checkMessage: checkMessage,
     recoverWalletFromEncryptedPrivateKey: recoverWalletFromEncryptedPrivateKey,
     recoverWalletFromPrivateKey: recoverWalletFromPrivateKey,
     encryptPrivateKey: encryptPrivateKey,
-    generateNewWallet: generateNewWallet
+    generateNewWallet: generateNewWallet,
+    encodeInvitation: encodeInvitation,
+    decodeInvitation: decodeInvitation,
+    EU: EUtils,
+
+    get BlockChain() {
+        return require('./classes/BlockChain')
+    },
+    getContract: require('./contracts'),
 };
