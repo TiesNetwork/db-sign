@@ -1,5 +1,7 @@
 const EC = require('../index.js');
 
+let _listenedAddresses = {}, func_id = 0;
+
 class BlockChain {
     constructor(provider){
         this.Registry = null;
@@ -41,6 +43,76 @@ class BlockChain {
             throw new Error(evt.args.msg);
 
         return evt.event;
+    }
+
+    async listenTransfer(address, cb){
+        let self = this;
+        await this._listenBalance(address, cb, async address => {
+            return await self.TieToken.balanceOf(address);
+        });
+    }
+
+    async listenBalance(address, cb){
+        let self = this;
+        await this._listenBalance(address, cb, async address => {
+            return await self.web3.eth.getBalancePromise(address);
+        });
+    }
+
+    async _listenBalance(address, cb, getBalanceFunc){
+        const timer = require('timers');
+        if(!getBalanceFunc.id)
+            getBalanceFunc.id = ++func_id;
+
+        let addrinfo = _listenedAddresses[getBalanceFunc.id];
+        if(!addrinfo) {
+            addrinfo = _listenedAddresses[getBalanceFunc.id] = {
+                listenTimer: null,
+                listenedAddresses: {}
+            };
+        }
+
+        let {listenTimer, listenedAddresses} = addrinfo;
+
+        let info = listenedAddresses[address];
+        if(!info){
+            let balance = await getBalanceFunc(address);
+            info = {
+                balance: balance,
+                cb: cb
+            };
+            listenedAddresses[address] = info;
+        }else if(cb){
+            info.cb = cb
+        }else{ //Remove listener
+            delete listenedAddresses[address];
+        }
+
+        let addresses = Object.keys(listenedAddresses);
+        let self = this;
+
+        if(addresses.length == 0){
+            if(listenTimer)
+                timer.clearInterval(listenTimer);
+        }else if(!listenTimer){
+            listenTimer = timer.setInterval(async () => {
+                let promises = [];
+                addresses.forEach(addr => {
+                    promises.push(getBalanceFunc(addr));
+                });
+                let balances = await Promise.all(promises);
+                balances.forEach((balance, i) => {
+                    let addr = addresses[i];
+                    let info = listenedAddresses[addr];
+                    if(!info.balance.eq(balance)){
+                        info.cb(balance, addr, info.balance);
+                        info.balance = balance;
+                    }
+                });
+
+            }, 3000);
+            listenTimer.unref();
+        }
     }
 }
 
