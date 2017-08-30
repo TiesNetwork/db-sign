@@ -56,12 +56,19 @@ function recoverWalletFromPrivateKey(privateKey){
     return wallet;
 }
 
+function toJson(obj, omitSignature){
+    return CJson(obj, (key, value) => {
+        if(omitSignature && key == '__signature')
+            return;
+        if(value instanceof Buffer)
+            return '0x' + value.toString('hex');
+        return value;
+    });
+}
+
 function hashMessage(message){
-	return EUtils.hashPersonalMessage(EUtils.toBuffer(CJson(message, (key, value) => {
-		if(key == '__signature')
-			return;
-		return value;
-	})));
+    let json = toJson(message);
+	return EUtils.hashPersonalMessage(EUtils.toBuffer(json));
 }
 
 /**
@@ -122,9 +129,17 @@ function recoverWalletFromEncryptedPrivateKey(encrypted_json_str, password){
     let JsonFormatter = node_cryptojs.JsonFormatter;
 
     // decrypt data with encrypted json string, passphrase string and custom JsonFormatter
-    let decrypted = CryptoJS.AES.decrypt(encrypted_json_str, password, { format: JsonFormatter });
-    let decryptedBase64 = CryptoJS.enc.Utf8.stringify(decrypted);
-    return recoverWalletFromPrivateKey(Buffer.from(decryptedBase64, 'base64'));
+    let buf;
+    try {
+        let decrypted = CryptoJS.AES.decrypt(encrypted_json_str, password, { format: JsonFormatter });
+        let decryptedBase64 = CryptoJS.enc.Utf8.stringify(decrypted);
+        buf = Buffer.from(decryptedBase64, 'base64');
+    }catch(e) {
+        console.error("Error decoding saved wallet:", e);
+    }
+    if (!buf || buf.length != 32)
+        throw new Error('Invalid password!');
+    return recoverWalletFromPrivateKey(buf);
 }
 
 function encryptPrivateKey(privateKey, password){
@@ -216,6 +231,7 @@ module.exports = {
     generateNewWallet: generateNewWallet,
     encodeInvitation: encodeInvitation,
     decodeInvitation: decodeInvitation,
+    messageToJson: toJson,
     EU: EUtils,
 
     get BlockChain() {
