@@ -67,7 +67,7 @@ function toJson(obj, omitSignature){
 }
 
 function hashMessage(message){
-    let json = toJson(message);
+    let json = toJson(message, true);
 	return EUtils.hashPersonalMessage(EUtils.toBuffer(json));
 }
 
