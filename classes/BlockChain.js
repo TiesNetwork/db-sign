@@ -59,6 +59,13 @@ class BlockChain {
         });
     }
 
+    async listenDeposit(address, cb){
+        let self = this;
+        await this._listenBalance(address, cb, async address => {
+            return await self.Registry.getDeposit(address);
+        });
+    }
+
     async _listenBalance(address, cb, getBalanceFunc){
         const timer = require('timers');
         if(!getBalanceFunc.id)
