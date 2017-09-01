@@ -62,6 +62,8 @@ function toJson(obj, omitSignature){
             return;
         if(value instanceof Buffer)
             return '0x' + value.toString('hex');
+        if(value && value.type == 'Buffer' && value.data)
+        	return '0x' + Buffer.from(value).toString('hex');
         return value;
     });
 }
