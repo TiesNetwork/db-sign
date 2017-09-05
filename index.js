@@ -48,7 +48,7 @@ function recoverWalletFromPrivateKey(privateKey){
     const address = EUtils.publicToAddress(publicBuf);
 
     const wallet = {
-        secret: privateKey,
+        secret: EUtils.toBuffer(privateKey),
         public: publicBuf,
         address: EUtils.bufferToHex(address)
     };
