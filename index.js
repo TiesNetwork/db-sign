@@ -196,7 +196,14 @@ function encodeInvitationInner(index, sig_v, sig_r, sig_s){
 }
 
 function decodeInvitation(str){
-    let buf = new Buffer(Base58.decode(str));
+    let code;
+    try{
+        code = Base58.decode(str);
+    }catch(e){
+        console.error('Error decoding invitation: ', e);
+        throw new Error('Bad invitation code!');
+    }
+    let buf = new Buffer(code);
     if(buf.length != 3 + 1 + 32 + 32 + 4)
         throw new Error('Invalid invitation code!');
     let crc = CRC32.buf(buf.slice(0, buf.length-4));
