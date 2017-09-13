@@ -1,6 +1,6 @@
 {
   "name": "@ties-network/db-sign",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "TiesDB json signing",
   "main": "index.js",
   "scripts": {
